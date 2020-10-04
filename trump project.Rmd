@@ -1,0 +1,67 @@
+---
+title: "Trump Tweet Project"
+author: "Fengshou Liang"
+date: "05/10/2020"
+output: html_document
+---
+ 
+As the US election approaches, we see President Donald Trump has been tweeting more often. In this project, I will be analyzing Trump's tweet from 2016-01-01 to 2020-10-04. 
+
+# Data
+The data is collected from Trump Tweet Archive created by Brendan Brown and I downloaded a csv file. 
+```{r message=FALSE, warning=FALSE}
+library(data.table)
+trump <- fread("C:/Users/sheri/Desktop/Data/trump.txt")
+```
+# Exploring the data
+We notice that Trump used a variety of devices to access twitter. Apart from that, we find the tweet content are sometimes websites, which we are not interested in. So let's first  take a look at the devices Trump has used. 
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+trump %>% count(source) %>% arrange(desc(n))
+```
+In fact, the following graph shows a more detailed version of devices used in a time series. 
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(lubridate)
+tweet <- trump %>% 
+  mutate(created_at = as.Date(created_at, "%m-%d-%Y %H:%M:%S")) 
+tweet %>% count(source, year = year(created_at)) %>%
+  mutate(percent = n / sum(n)) %>%
+  ggplot(aes(year, percent, color = source)) +
+  geom_line()
+  
+```   
+
+Here we notice that while the usage of most of devices stay unchanged, that of iPhone and Android changes dramatically. The change of iphone usage may be explained by Trump using Twitter more frequently with his phone but why is there a decrease in the use of Android? Now I will set a constraint on the timeline and investigate what happened from 2016 to 2017. 
+
+In fact, according to articles back in 2017, Trump has been reported posting slightly negative content with his Android device while positive tweets with iPhone. After such an exposure, Trump stopped using Android devices. Now let's take a closer look and find the difference between them. 
+
+Since Trump's last tweet was on Mar.25, 2017, we are limiting his tweet to those before this date and categorize all other devices into "others" and focus on only iPhone and Android. 
+
+```{r message=FALSE, warning=FALSE}
+library(stringr)
+tweet_new <- 
+  tweet %>% filter(created_at <= "2017-03-26") %>%
+  mutate(source = ifelse(str_detect(source, "iPhone"), "iPhone", ifelse(str_detect(source, "Android"), "Android", "Others"))) %>%
+  filter(source %in% c("iPhone", "Android"))
+```
+
+Some of Trump's text contains an external link, so let's take a look on they distributed across two devices. 
+```{r}
+tweet_link <- 
+  tweet_new %>% 
+  count(source, link = ifelse(str_detect(text, "http"), "Contains links", "No links"))
+
+ggplot(tweet_link, aes(x=source, y=n, fill=link))+
+  geom_bar(stat = "identity")
+```
+Similarly,the way he uses @ are also different.
+```{r}
+tweet_new %>% 
+  count(source, direct = ifelse(str_detect(text, "@"), "Contains @", "No @")) %>%
+  ggplot(aes(x=source, y=n, fill = direct)) +
+  geom_bar(stat = "identity", position = "dodge")
+```
+
+
+
