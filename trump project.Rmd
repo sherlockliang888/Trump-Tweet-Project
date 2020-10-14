@@ -55,7 +55,8 @@ tweet_link <-
 ggplot(tweet_link, aes(x=source, y=n, fill=link))+
   geom_bar(stat = "identity")
 ```
-Similarly,the way he uses @ are also different.
+
+Similarly,the way he uses @ are also different but not as much as the one above.
 ```{r}
 tweet_new %>% 
   count(source, direct = ifelse(str_detect(text, "@"), "Contains @", "No @")) %>%
