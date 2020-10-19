@@ -36,7 +36,7 @@ Here we notice that while the usage of most of devices stay unchanged, that of i
 
 In fact, according to articles back in 2017, Trump has been reported posting slightly negative content with his Android device while positive tweets with iPhone. After such an exposure, Trump stopped using Android devices. Now let's take a closer look and find the difference between them. 
 
-Since Trump's last tweet was on Mar.25, 2017, we are limiting his tweet to those before this date and categorize all other devices into "others" and focus on only iPhone and Android. 
+Since Trump's last tweet with Android was on Mar.25, 2017, we are limiting his tweet to those before this date and categorize all other devices into "others" and focus on only iPhone and Android. 
 
 ```{r message=FALSE, warning=FALSE}
 library(stringr)
@@ -56,7 +56,7 @@ ggplot(tweet_link, aes(x=source, y=n, fill=link))+
   geom_bar(stat = "identity")
 ```
 
-Similarly,the way he uses @ are also different but not as much as the one above.
+Similarly,the way he uses @ when referring to other people are also different but not as much as the one above.
 ```{r}
 tweet_new %>% 
   count(source, direct = ifelse(str_detect(text, "@"), "Contains @", "No @")) %>%
@@ -64,5 +64,15 @@ tweet_new %>%
   geom_bar(stat = "identity", position = "dodge")
 ```
 
-
+```{r}
+library(tidytext)
+tweet_new %>% 
+  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z0-9]", " ")) %>%
+  unnest_tokens(word, text) %>% 
+  #With tokenization transform sentences into words
+  filter(!word %in% stop_words$word) %>%
+  count(source, word) %>%
+  arrange(source, desc(n)) %>%
+  head()
+```
 
