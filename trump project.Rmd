@@ -64,15 +64,30 @@ tweet_new %>%
   geom_bar(stat = "identity", position = "dodge")
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tidytext)
+tweet_comparison <- 
 tweet_new %>% 
   mutate(text = str_replace_all(text, "https://t.co/[A-Za-z0-9]", " ")) %>%
   unnest_tokens(word, text) %>% 
   #With tokenization transform sentences into words
-  filter(!word %in% stop_words$word) %>%
+  filter(!word %in% stop_words$word & !word %in% c("rt","cruz", "amp", "â")) %>%
   count(source, word) %>%
-  arrange(source, desc(n)) %>%
-  head()
+  arrange(source, desc(n))
+
 ```
+Now we have found the words Trump used most frequently in different devices. We can plot them side by side for a visual comparison. 
+```{r message=FALSE, warning=FALSE}
+tweet_comparison %>% 
+  top_n(30) %>% 
+  ggplot(aes(x=reorder(word, n), y=n, fill=source)) +
+  geom_bar(stat = "identity") +
+  xlab("Tweet word") +
+  coord_flip() +
+  facet_grid(. ~source)
+```
+  
+
+
+
 
