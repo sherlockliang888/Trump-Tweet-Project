@@ -86,7 +86,15 @@ tweet_comparison %>%
   coord_flip() +
   facet_grid(. ~source)
 ```
-  
+```{r}
+library(tidytext)
+#sentiments is a dataframe containing a list of words with their sentiments (positive or negative).
+head(sentiments)
+tweet_comparison %>%
+  inner_join(sentiments, by = "word") %>%
+  group_by(sentiment, source) %>%
+  summarise(count = sum(n))
+```
 
 
 
