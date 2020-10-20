@@ -34,6 +34,7 @@ tweet %>% count(source, year = year(created_at)) %>%
 
 Here we notice that while the usage of most of devices stay unchanged, that of iPhone and Android changes dramatically. The change of iphone usage may be explained by Trump using Twitter more frequently with his phone but why is there a decrease in the use of Android? Now I will set a constraint on the timeline and investigate what happened from 2016 to 2017. 
 
+# Tweet devices and sentiments
 In fact, according to articles back in 2017, Trump has been reported posting slightly negative content with his Android device while positive tweets with iPhone. After such an exposure, Trump stopped using Android devices. Now let's take a closer look and find the difference between them. 
 
 Since Trump's last tweet with Android was on Mar.25, 2017, we are limiting his tweet to those before this date and categorize all other devices into "others" and focus on only iPhone and Android. 
@@ -85,7 +86,10 @@ tweet_comparison %>%
   xlab("Tweet word") +
   coord_flip() +
   facet_grid(. ~source)
+
 ```
+
+
 ```{r}
 library(tidytext)
 #sentiments is a dataframe containing a list of words with their sentiments (positive or negative).
@@ -93,9 +97,36 @@ head(sentiments)
 tweet_comparison %>%
   inner_join(sentiments, by = "word") %>%
   group_by(sentiment, source) %>%
-  summarise(count = sum(n))
+  summarise(count = sum(n))%>%
+  ggplot(aes(sentiment, count, fill=source)) +
+  geom_bar(stat = "identity", position = "dodge")
 ```
 
+# Tweet hour and sentiments
 
+```{r message=FALSE, warning=FALSE}
+trump %>%
+  mutate(created_at =as.POSIXct(created_at, format = "%m-%d-%Y %H:%M:%S")) %>%
+  mutate(source = ifelse(str_detect(source, "iPhone"), "iPhone", "Others")) %>%
+  filter(source == "iPhone") %>%
+  count(source, hour = hour(created_at)) %>%
+  mutate(percent = n / sum(n)) %>%
+  ggplot(aes(hour, percent, color = source)) +
+  geom_line()
 
+```
+
+```{r}
+trump %>%
+  mutate(created_at =as.POSIXct(created_at, format = "%m-%d-%Y %H:%M:%S")) %>%
+  mutate(source = ifelse(str_detect(source, "iPhone"), "iPhone", "Others")) %>%
+  filter(source == "iPhone") %>%
+  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z0-9]", " ")) %>%
+  unnest_tokens(word, text) %>%
+  filter(!word %in% stop_words$word) %>%
+  inner_join(sentiments, by = "word") %>%
+  count(sentiment, hour = hour(created_at)) %>%
+  ggplot(aes(hour, n, color = sentiment)) +
+  geom_line()
+```
 
