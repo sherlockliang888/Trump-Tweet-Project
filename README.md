@@ -175,5 +175,5 @@ trump %>%
   geom_line() +
   facet_grid(sentiment~.)
 ```
-```
+
 However, I found an interesting pattern regarding Trump's sleep schedule. Assume he is the only one with his Twitter account on his iPhone, Trump sleeps very late and gets up early and it seems that he only sleeps for around 5 hours. 
